@@ -1,8 +1,6 @@
 package com.example.matt.rssprocessingassignment;
 
 import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -33,9 +31,7 @@ import javax.xml.parsers.SAXParserFactory;
 
 public class MainActivity extends AppCompatActivity
 {
-    private ArrayList<String> title;
-    private ArrayList<String> pubDate;
-    private StringBuilder builder;
+    private ArrayList<NewsArticle> newsArticle;
     private String urlAddress = "http://www.winnipegsun.com/g00/3_c-6bbb.bnssnujlx78zs.htr_/c-6RTWJUMJZX77x24myyux3ax2fx2fbbb.bnssnujlx78zs.htrx2fsjbx78x2fwx78x78.crq_$/$/$";
     private NewsAdapter newsAdapter;
     private ListView listView;
@@ -57,20 +53,19 @@ public class MainActivity extends AppCompatActivity
         processRss(null);
     }
 
-    private boolean isNetworkAvailable()
-    {
-        ConnectivityManager connectivityManager
-                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-    }
-
+    /**
+     * Method to begin processing rss feed
+     * @param view
+     */
     public void processRss(View view)
     {
             RssProcessorTask rssTask = new RssProcessorTask();
             rssTask.execute();
     }
 
+    /**
+     * Custom class that extends AsyncTask class
+     */
     class RssProcessorTask extends AsyncTask
     {
         @Override
@@ -140,27 +135,22 @@ public class MainActivity extends AppCompatActivity
             super.onPostExecute(o);
             Log.d("Matt", "onPostExecute");
 
-            newsAdapter = new NewsAdapter(MainActivity.this, R.layout.list_item, title, "title");
-            //newsAdapter = new NewsAdapter(MainActivity.this, R.layout.list_item, pubDate, "pubDate");
+            newsAdapter = new NewsAdapter(MainActivity.this, R.layout.list_item, newsArticle);
             listView.setAdapter(newsAdapter);
         }
 
         class SunHandler extends DefaultHandler
         {
-            private boolean inTitle, inPubDate;
-
-            // Initialization block
-            {
-                title = new ArrayList<String>();
-                pubDate = new ArrayList<String>();
-
-            }
-
+            private boolean inTitle, inPubDate, inDescription, inLink;
+            private StringBuilder builder;
+            private NewsArticle article;
             @Override
             public void startDocument() throws SAXException
             {
                 super.startDocument();
                 Log.d("Matt", "startDocument");
+                builder = new StringBuilder();
+                newsArticle = new ArrayList<NewsArticle>();
             }
 
             @Override
@@ -168,11 +158,6 @@ public class MainActivity extends AppCompatActivity
             {
                 super.endDocument();
                 Log.d("Matt", "endDocument");
-
-                for (String t : pubDate)
-                {
-                    Log.d("Matt", t);
-                }
             }
 
             @Override
@@ -181,14 +166,31 @@ public class MainActivity extends AppCompatActivity
                 super.startElement(uri, localName, qName, attributes);
                 Log.d("Matt", "startElement: " + qName);
 
-                builder = new StringBuilder();
+                // Create a new instance of news article when element item is parsed
+                if (qName.equalsIgnoreCase("item"))
+                {
+                    this.article = new NewsArticle();
+                }
 
-                if (qName.equals("title"))
+                // Determine if article is null and if it isn't determine which element is being parsed and change it's boolean to true
+                if(this.article != null)
                 {
-                    inTitle = true;
-                } else if (qName.equals("pubDate"))
-                {
-                    inPubDate = true;
+                    if (qName.equalsIgnoreCase("title"))
+                    {
+                        inTitle = true;
+                    }
+                    else if (qName.equalsIgnoreCase("link"))
+                    {
+                        inLink = true;
+                    }
+                    else if (qName.equalsIgnoreCase("description"))
+                    {
+                        inDescription = true;
+                    }
+                    else if (qName.equalsIgnoreCase("pubDate"))
+                    {
+                        inPubDate = true;
+                    }
                 }
             }
 
@@ -198,12 +200,40 @@ public class MainActivity extends AppCompatActivity
                 super.endElement(uri, localName, qName);
                 Log.d("Matt", "endElement: " + qName);
 
-                if (qName.equals("title"))
+                // Determine if article is null
+                if(this.article != null)
                 {
-                    inTitle = false;
-                } else if (qName.equals("pubDate"))
-                {
-                    inPubDate = false;
+                    // Determine what element is being parsed and then set the articles property based on that
+                    if (qName.equalsIgnoreCase("title"))
+                    {
+                        inTitle = false;
+
+                        // If the current article title is null set it
+                        if(article.getArticleTitle() == null)
+                        {
+                            article.setArticleTitle(builder.toString().trim());
+                        }
+                    }
+                    else if(qName.equalsIgnoreCase("link"))
+                    {
+                        inLink = false;
+                        article.setLink(builder.toString());
+                    }
+                    else if (qName.equalsIgnoreCase("description"))
+                    {
+                        inDescription = false;
+                        article.setDescription(builder.toString());
+                    }
+                    else if (qName.equalsIgnoreCase("pubDate"))
+                    {
+                        inPubDate = false;
+                        article.setPublishDate(builder.toString());
+                    }
+                    else if(qName.equalsIgnoreCase("source"))
+                    {
+                        newsArticle.add(article);
+                    }
+                    builder.setLength(0);
                 }
             }
 
@@ -211,17 +241,28 @@ public class MainActivity extends AppCompatActivity
             public void characters(char[] ch, int start, int length) throws SAXException
             {
                 super.characters(ch, start, length);
-                String s = new String(ch, start, length);
-                Log.d("Matt", "characters: " + s);
-                builder.append(ch, start, length);
 
-                if (inTitle)
+                if(this.article != null)
                 {
-                    title.add(builder.toString());
-                } else if (inPubDate)
-                {
-                    pubDate.add(s);
+                    if (inTitle)
+                    {
+                        builder.append(ch, start, length);
+                    }
+                    else if (inLink)
+                    {
+                        builder.append(ch, start, length);
+                    }
+                    else if (inDescription)
+                    {
+                        builder.append(ch, start, length);
+                    }
+                    else if (inPubDate)
+                    {
+                        builder.append(ch, start, length);
+                    }
                 }
+
+                Log.d("Matt", "characters: " + builder.toString());
             }
 
             @Override
@@ -273,16 +314,14 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private class NewsAdapter extends ArrayAdapter<String>
+    private class NewsAdapter extends ArrayAdapter<NewsArticle>
     {
-        private ArrayList<String> items;
-        private String typeOfList;
+        private ArrayList<NewsArticle> items;
 
-        public NewsAdapter(Context context, int textViewResourceId, ArrayList<String> items, String typeOfList)
+        public NewsAdapter(Context context, int textViewResourceId, ArrayList<NewsArticle> items)
         {
             super(context, textViewResourceId, items);
             this.items = items;
-            this.typeOfList = typeOfList;
         }
 
         public View getView(int position, View convertView, ViewGroup parent)
@@ -295,26 +334,20 @@ public class MainActivity extends AppCompatActivity
                 v = vi.inflate(R.layout.list_item, null);
             }
 
-            String o = items.get(position);
+            NewsArticle o = items.get(position);
 
             if(o != null)
             {
                 TextView tt = (TextView)v.findViewById(R.id.toptext);
                 TextView bt = (TextView)v.findViewById(R.id.bottomtext);
 
-                if(typeOfList.equals("title"))
+                if (tt != null)
                 {
-                    if (tt != null)
-                    {
-                        tt.setText(o.toString());
-                    }
+                    tt.setText(o.getArticleTitle());
                 }
-                if(typeOfList.equals("pubDate"))
+                if (bt != null)
                 {
-                    if (bt != null)
-                    {
-                        bt.setText(o.toString());
-                    }
+                    bt.setText(o.getPublishDate());
                 }
             }
 
@@ -326,18 +359,32 @@ public class MainActivity extends AppCompatActivity
         private String articleTitle;
         private String publishDate;
         private String description;
+        private String link;
 
-        public NewsArticle(String articleTitle, String publishDate, String description)
+        public NewsArticle() {}
+
+        public NewsArticle(String articleTitle, String publishDate, String description, String link)
         {
             this.articleTitle = articleTitle;
             this.publishDate = publishDate;
             this.description = description;
+            this.link = link;
         }
 
         public String getArticleTitle() { return articleTitle; }
 
+        public void setArticleTitle(String articleTitle) { this.articleTitle = articleTitle; }
+
         public String getPublishDate() { return publishDate; }
 
+        public void setPublishDate(String publishDate) { this.publishDate = publishDate; }
+
         public String getDescription() { return description; }
+
+        public void setDescription(String description) { this.description = description; }
+
+        public String getLink() { return link;}
+
+        public void setLink(String link) { this.link = link; }
     }
 }
