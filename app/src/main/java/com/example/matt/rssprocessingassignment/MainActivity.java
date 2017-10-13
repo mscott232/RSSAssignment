@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity
     private NewsAdapter newsAdapter;
     private ListView listView;
     private SharedPreferences sharedPreferences;
+    private int numberOfArticles;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -71,6 +72,8 @@ public class MainActivity extends AppCompatActivity
         boolean topSports;
 
         super.onResume();
+
+        setNumberOfArticles();
 
         topNews = sharedPreferences.getBoolean("top news", false);
         topSports = sharedPreferences.getBoolean("top sports", false);
@@ -269,7 +272,11 @@ public class MainActivity extends AppCompatActivity
                     }
                     else if(qName.equalsIgnoreCase("source"))
                     {
-                        newsArticle.add(article);
+                        // Set the number of articles to be displayed
+                        if(newsArticle.size() <= numberOfArticles - 1)
+                        {
+                            newsArticle.add(article);
+                        }
                     }
                     builder.setLength(0);
                 }
@@ -431,5 +438,20 @@ public class MainActivity extends AppCompatActivity
         public String getLink() { return link;}
 
         public void setLink(String link) { this.link = link; }
+    }
+
+    public void setNumberOfArticles()
+    {
+        int articlesIndex = sharedPreferences.getInt("number of articles", 4);
+
+        if(articlesIndex == 4)
+        {
+            numberOfArticles = 100;
+        }
+        else
+        {
+            String[] stringArray = getResources().getStringArray(R.array.numberOfArticles);
+            numberOfArticles = Integer.parseInt(stringArray[articlesIndex]);
+        }
     }
 }

@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">RssProcessingAssignment</string>
+    <string-array name="numberOfArticles">
+        <item>1</item>
+        <item>2</item>
+        <item>5</item>
+        <item>10</item>
+        <item>Unlimited</item>
+    </string-array>
 </resources>

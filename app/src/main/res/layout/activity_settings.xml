@@ -43,7 +43,18 @@
             android:layout_weight="1"
             android:text="Top Sports Stories"/>
 
+        <TextView
+            android:id="@+id/tvNumberOfArticles"
+            android:layout_width="209dp"
+            android:layout_height="wrap_content"
+            android:text="Number of Articles to Display"/>
+
     </RadioGroup>
+
+    <Spinner
+        android:id="@+id/spinner"
+        android:layout_width="210dp"
+        android:layout_height="wrap_content"/>
 
 
 </LinearLayout>
