@@ -14,4 +14,9 @@
         android:title="Local Sports"
         app:showAsAction="always"/>
 
+    <item
+        android:id="@+id/settings"
+        android:title="Settings"
+        app:showAsAction="never"/>
+
 </menu>
