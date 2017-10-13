@@ -2,6 +2,7 @@ package com.example.matt.rssprocessingassignment;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -34,9 +35,10 @@ import javax.xml.parsers.SAXParserFactory;
 public class MainActivity extends AppCompatActivity
 {
     private ArrayList<NewsArticle> newsArticle;
-    private String urlAddress = "http://www.winnipegsun.com/g00/3_c-6bbb.bnssnujlx78zs.htr_/c-6RTWJUMJZX77x24myyux3ax2fx2fbbb.bnssnujlx78zs.htrx2fsjbx78x2fwx78x78.crq_$/$/$";
+    private String urlAddress;
     private NewsAdapter newsAdapter;
     private ListView listView;
+    private SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -44,8 +46,9 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        listView = (ListView)findViewById(R.id.lvFeed);
+        sharedPreferences = getSharedPreferences("general prefs", MODE_PRIVATE);
 
+        listView = (ListView)findViewById(R.id.lvFeed);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener()
         {
             @Override
@@ -64,7 +67,27 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume()
     {
+        boolean topNews;
+        boolean topSports;
+
         super.onResume();
+
+        topNews = sharedPreferences.getBoolean("top news", false);
+        topSports = sharedPreferences.getBoolean("top sports", false);
+
+        if(topNews)
+        {
+            urlAddress = "http://www.winnipegsun.com/g00/3_c-6bbb.bnssnujlx78zs.htr_/c-6RTWJUMJZX77x24myyux3ax2fx2fbbb.bnssnujlx78zs.htrx2fsjbx78x2fwx78x78.crq_$/$/$";
+        }
+        else if(topSports)
+        {
+            urlAddress = "http://www.winnipegsun.com/g00/3_c-6bbb.bnssnujlx78zs.htr_/c-6RTWJUMJZX77x24myyux3ax2fx2fbbb.bnssnujlx78zs.htrx2fx78utwyx78x2fwx78x78.crq_$/$/$";
+        }
+        else
+        {
+            urlAddress = "http://www.winnipegsun.com/g00/3_c-6bbb.bnssnujlx78zs.htr_/c-6RTWJUMJZX77x24myyux3ax2fx2fbbb.bnssnujlx78zs.htrx2fsjbx78x2fwx78x78.crq_$/$/$";
+        }
+
         processRss(null);
     }
 
@@ -327,6 +350,10 @@ public class MainActivity extends AppCompatActivity
             case R.id.settings:
                 Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
                 startActivity(intent);
+                return true;
+            case R.id.refresh:
+                processRss(null);
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

@@ -1,10 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.matt.rssprocessingassignment.SettingsActivity">
+    tools:context="com.example.matt.rssprocessingassignment.SettingsActivity"
+    android:orientation="vertical">
 
-</android.support.constraint.ConstraintLayout>
+    <TextView
+        android:id="@+id/tvSettingsTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="RSS Settings"
+        android:textAlignment="center"/>
+
+    <TextView
+        android:id="@+id/tvDefaultFeed"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Choose Default Feed"
+        android:layout_marginLeft="15dp"/>
+
+    <RadioGroup
+        android:id="@+id/rgDefaultFeed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginLeft="10dp">
+
+        <RadioButton
+            android:id="@+id/rbTopNews"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Top News Stories" />
+
+        <RadioButton
+            android:id="@+id/rbTopSports"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Top Sports Stories"/>
+
+    </RadioGroup>
+
+
+</LinearLayout>
