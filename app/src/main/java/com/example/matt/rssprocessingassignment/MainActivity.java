@@ -68,10 +68,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume()
     {
+        super.onResume();
+
         boolean topNews;
         boolean topSports;
-
-        super.onResume();
 
         setNumberOfArticles();
 
